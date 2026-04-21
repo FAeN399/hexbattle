@@ -159,120 +159,76 @@ function PartyCard({ party, units, active, selectedUnitId, showGridLines, dragSt
   const canDeploy = present.length > 0 && !!leader && !overCap;
   const stagingMode = !!onStage;
   const canStage = stagingMode && present.length > 0 && !!leader && !overCap && !deployed && (staged || canStageMore);
-  const [side, setSide] = usePCState(0); // 0 = formation, 1 = doctrine
+  const [side, setSide] = usePCState(0); // 0 = formation, 1 = everything else
   const flipTo = (next) => (e) => { e.stopPropagation(); setSide(next); };
+  const stop = (e) => e.stopPropagation();
 
   return (
     <div className={`party-card ${active ? "active" : ""} ${deployed ? "deployed-banner" : ""} ${staged ? "staged-banner" : ""}`} onClick={onActivate}>
-      <div className="party-card-header">
-        <div style={{minWidth:0}}>
-          <div style={{display:"flex", alignItems:"center", gap:6}}>
-            <div className="party-name">{party.name}</div>
-            {staged && (
-              <span style={{
-                fontFamily:"var(--mono)", fontSize:9.5, letterSpacing:"0.14em",
-                padding:"1px 5px", border:"1px solid var(--gold-deep, #a8864a)", borderRadius:1,
-                background:"var(--gold-deep, #a8864a)", color:"var(--parchment)", textTransform:"uppercase",
-              }}>⚑ Staged</span>
-            )}
-            {deployed && !staged && (
-              <span style={{
-                fontFamily:"var(--mono)", fontSize:9.5, letterSpacing:"0.14em",
-                padding:"1px 5px", border:"1px solid var(--ink)", borderRadius:1,
-                background:"var(--ink)", color:"var(--parchment)", textTransform:"uppercase",
-              }}>⚿ Deployed</span>
-            )}
-          </div>
-          <div className="party-motto">"{party.motto}"</div>
+      {/* Persistent top strip (card chrome): banner name + status + flip */}
+      <div className="party-card-top">
+        <div className="party-card-top-name">
+          <div className="party-name">{party.name}</div>
+          {staged && <span className="status-pill status-staged">⚑ Staged</span>}
+          {deployed && !staged && <span className="status-pill status-deployed">⚿ Deployed</span>}
         </div>
-        <div style={{textAlign:"right"}}>
-          <div className="label" style={{fontSize:9.5}}>Souls</div>
-          <div style={{fontFamily:"var(--mono)", fontSize:16, color: overCap ? "var(--blood)" : "var(--ink)"}}>
-            {present.length}<span style={{color:"var(--ink-fade)"}}>/{cap}</span>
-          </div>
-          {leader && (
-            <div style={{fontFamily:"var(--mono)", fontSize:10.5, color:"var(--gold-deep)", marginTop:2, letterSpacing:"0.1em"}}>
-              ◈ CMD {cmd}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div style={{display:"flex", gap:10, fontSize:10.5, color:"var(--ink-fade)", fontStyle:"italic", margin:"2px 0 6px", flexWrap:"wrap", alignItems:"center"}}>
-        {side === 0 ? (
-          <>
-            <span>Front</span><span>·</span><span>Mid</span><span>·</span><span>Back</span>
-            <span style={{marginLeft:"auto", color:"var(--gold-deep)"}}>◆ leader</span>
-          </>
-        ) : (
-          <>
-            <span style={{fontFamily:"var(--mono)", fontStyle:"normal", letterSpacing:"0.14em", fontSize:9.5, textTransform:"uppercase", color:"var(--ink-fade)"}}>Doctrine & Leader</span>
-            <span style={{marginLeft:"auto"}}/>
-          </>
-        )}
-        <span style={{display:"inline-flex", gap:4, alignItems:"center"}}>
-          <button
-            className="card-flip-btn"
-            onClick={flipTo(0)}
-            title="Formation"
-            style={{opacity: side === 0 ? 1 : 0.45}}
-            aria-label="Show formation"
-          >◀</button>
-          <span style={{display:"inline-flex", gap:3}}>
+        <div className="card-flip-nav" onClick={stop}>
+          <button className="card-flip-btn" onClick={flipTo(0)} title="Formation" style={{opacity: side === 0 ? 1 : 0.45}} aria-label="Show formation">◀</button>
+          <span className="card-flip-dots">
             <i className="card-dot" style={{background: side === 0 ? "var(--ink)" : "var(--rule)"}}/>
             <i className="card-dot" style={{background: side === 1 ? "var(--ink)" : "var(--rule)"}}/>
           </span>
-          <button
-            className="card-flip-btn"
-            onClick={flipTo(1)}
-            title="Doctrine"
-            style={{opacity: side === 1 ? 1 : 0.45}}
-            aria-label="Show doctrine"
-          >▶</button>
-        </span>
-      </div>
-      {side === 0 ? (
-      <div className="formation-wrap formation-wrap--solo" onClick={(e)=>e.stopPropagation()} style={deployed ? {position:"relative"} : undefined}>
-        <FormationGrid
-          party={party}
-          units={units}
-          selectedUnitId={selectedUnitId}
-          showGridLines={showGridLines}
-          dragState={dragState}
-          onSlotClick={deployed ? null : onSlotClick}
-          onSlotDrop={deployed ? (()=>{}) : onSlotDrop}
-          onDragStart={deployed ? (()=>{}) : onDragStart}
-          onDragEnd={onDragEnd}
-          onDragOverSlot={deployed ? (()=>{}) : onDragOverSlot}
-          onDragLeaveSlot={onDragLeaveSlot}
-        />
-        <div className="formation-hint">
-          <div className="label" style={{fontSize:9.5}}>Doctrine</div>
-          <div style={{fontFamily:"var(--serif)", fontWeight:600, fontSize:13, marginTop:1}}>{party.formation}</div>
-          <div className="italic-note" style={{fontSize:11, marginTop:2}}>{FORMATIONS[party.formation].desc}</div>
-          <div style={{display:"flex", gap:4, flexWrap:"wrap", marginTop:6}}>
-            {Object.entries(roles).filter(([,v])=>v>0).map(([r,v])=>(
-              <span key={r} className={`tag ${r}`}>{r} ×{v}</span>
-            ))}
-          </div>
-          <button
-            className="btn ghost sm"
-            style={{marginTop:8, width:"100%", fontFamily:"var(--serif)", letterSpacing:"0.08em"}}
-            onClick={flipTo(1)}
-            title="Flip to doctrine & leader"
-          >Doctrine & Leader →</button>
+          <button className="card-flip-btn" onClick={flipTo(1)} title="Details" style={{opacity: side === 1 ? 1 : 0.45}} aria-label="Show details">▶</button>
         </div>
       </div>
+
+      {side === 0 ? (
+        /* SIDE A — formation grid only */
+        <div className="party-card-side side-formation" onClick={stop}>
+          <FormationGrid
+            party={party}
+            units={units}
+            selectedUnitId={selectedUnitId}
+            showGridLines={showGridLines}
+            dragState={dragState}
+            onSlotClick={deployed ? null : onSlotClick}
+            onSlotDrop={deployed ? (()=>{}) : onSlotDrop}
+            onDragStart={deployed ? (()=>{}) : onDragStart}
+            onDragEnd={onDragEnd}
+            onDragOverSlot={deployed ? (()=>{}) : onDragOverSlot}
+            onDragLeaveSlot={onDragLeaveSlot}
+          />
+        </div>
       ) : (
-      <div className="doctrine-side" onClick={(e)=>e.stopPropagation()}>
-          <div>
-            <div className="label" style={{fontSize:9.5}}>Doctrine</div>
+        /* SIDE B — everything else */
+        <div className="party-card-side side-details" onClick={stop}>
+          {party.motto && (
+            <div className="party-motto">&ldquo;{party.motto}&rdquo;</div>
+          )}
+
+          <div className="party-metrics">
+            <div className="metric">
+              <div className="metric-label">Souls</div>
+              <div className="metric-val" style={{color: overCap ? "var(--blood)" : "var(--ink)"}}>
+                {present.length}<span className="metric-dim">/{cap}</span>
+              </div>
+            </div>
+            <div className="metric">
+              <div className="metric-label">Command</div>
+              <div className="metric-val" style={{color: leader ? "var(--gold-deep)" : "var(--ink-fade)"}}>
+                {leader ? `◈ ${cmd}` : "—"}
+              </div>
+            </div>
+          </div>
+
+          <div className="card-section">
+            <div className="label">Formation</div>
             <select
               className="select"
               value={party.formation}
               disabled={deployed}
               onChange={(e)=>{ e.stopPropagation(); onFormationChange(party.id, e.target.value); }}
-              onClick={(e)=>e.stopPropagation()}
+              onClick={stop}
               style={{width:"100%", opacity: deployed ? 0.55 : 1, cursor: deployed ? "not-allowed" : undefined}}
             >
               {Object.keys(FORMATIONS).map(f => <option key={f} value={f}>{f}</option>)}
@@ -280,77 +236,50 @@ function PartyCard({ party, units, active, selectedUnitId, showGridLines, dragSt
             <div className="italic-note" style={{fontSize:11, marginTop:4}}>{FORMATIONS[party.formation].desc}</div>
             <DoctrineBonusRows formation={FORMATIONS[party.formation]}/>
           </div>
-          <div style={{display:"flex", gap:4, flexWrap:"wrap", marginTop:4}}>
-            {Object.entries(roles).filter(([,v])=>v>0).map(([r,v])=>(
-              <span key={r} className={`tag ${r}`}>{r} ×{v}</span>
-            ))}
+
+          <div className="card-section">
+            <div className="label">Composition</div>
+            <div className="role-tag-row">
+              {Object.entries(roles).filter(([,v])=>v>0).length > 0
+                ? Object.entries(roles).filter(([,v])=>v>0).map(([r,v])=>(
+                    <span key={r} className={`tag ${r}`}>{r} ×{v}</span>
+                  ))
+                : <span className="italic-note" style={{fontSize:11}}>No souls yet.</span>}
+            </div>
           </div>
-          <div style={{paddingTop:6, borderTop:"1px solid var(--rule-faint)"}}>
-            <div className="label" style={{fontSize:9.5}}>Leader</div>
+
+          <div className="card-section">
+            <div className="label">Leader</div>
             {leader ? (
-              <div style={{display:"flex", alignItems:"center", gap:6, marginTop:2, minWidth:0}}>
-                <Heraldry seed={leader.id} sigil={leader.sigil} size={20}/>
-                <div style={{minWidth:0, flex:1}}>
-                  <div style={{fontFamily:"var(--serif)", fontWeight:600, fontSize:12, lineHeight:1.15, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{leader.name}</div>
-                  <div style={{fontSize:10.5, color:"var(--ink-fade)", fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>aura · {leader.cls}</div>
+              <div className="leader-line">
+                <Heraldry seed={leader.id} sigil={leader.sigil} size={24}/>
+                <div className="leader-info">
+                  <div className="leader-name">{leader.name}</div>
+                  <div className="leader-sub">aura · {leader.cls}</div>
                 </div>
               </div>
             ) : (
-              <div style={{display:"flex", alignItems:"center", gap:6, marginTop:2, color:"var(--blood)"}}>
-                <span style={{fontSize:12, fontStyle:"italic"}}>No leader — Broken Banner risk.</span>
-              </div>
+              <div className="leader-none">No leader — Broken Banner risk.</div>
             )}
           </div>
+
           {(onToggleDeploy || stagingMode) && (
-            <div style={{marginTop:"auto", paddingTop:8, borderTop:"1px solid var(--rule-faint)"}}>
+            <div className="card-footer">
               {staged ? (
-                <button
-                  className="btn ghost sm"
-                  style={{width:"100%", fontFamily:"var(--serif)", letterSpacing:"0.08em"}}
-                  onClick={(e)=>{ e.stopPropagation(); onUnstage && onUnstage(party.id); }}
-                  title="Remove this banner from the rehearsal staging"
-                >↩ Withdraw from staging</button>
+                <button className="btn ghost sm" style={{width:"100%"}} onClick={(e)=>{ e.stopPropagation(); onUnstage && onUnstage(party.id); }} title="Remove this banner from the rehearsal staging">↩ Withdraw from staging</button>
               ) : deployed ? (
                 <div style={{display:"flex", gap:6}}>
-                  <button
-                    className="btn sm"
-                    style={{flex:1, fontFamily:"var(--serif)", letterSpacing:"0.08em"}}
-                    onClick={(e)=>{ e.stopPropagation(); onTestBattle && onTestBattle(party.id); }}
-                    title="Rehearse a battle with this banner — no persistent changes"
-                  >⚔ Test battle</button>
-                  <button
-                    className="btn ghost sm"
-                    style={{flex:1, fontFamily:"var(--serif)", letterSpacing:"0.08em"}}
-                    onClick={(e)=>{ e.stopPropagation(); onToggleDeploy(party.id); }}
-                    title="Unlock this banner and return it to the muster"
-                  >↩ Recall</button>
+                  <button className="btn sm" style={{flex:1}} onClick={(e)=>{ e.stopPropagation(); onTestBattle && onTestBattle(party.id); }} title="Rehearse a battle with this banner">⚔ Test battle</button>
+                  <button className="btn ghost sm" style={{flex:1}} onClick={(e)=>{ e.stopPropagation(); onToggleDeploy(party.id); }} title="Return to the muster">↩ Recall</button>
                 </div>
               ) : stagingMode ? (
-                <button
-                  className="btn sm"
-                  disabled={!canStage}
-                  style={{width:"100%", fontFamily:"var(--serif)", letterSpacing:"0.1em", opacity: canStage ? 1 : 0.5, cursor: canStage ? "pointer" : "not-allowed"}}
-                  onClick={(e)=>{ e.stopPropagation(); if (canStage) onStage(party.id); }}
-                  title={
-                    !leader ? "Appoint a leader first"
-                    : overCap ? "Over capacity"
-                    : present.length === 0 ? "Add at least one soul"
-                    : !canStageMore ? "Staging is full — withdraw a banner first"
-                    : "Move this banner to the rehearsal staging area"
-                  }
-                >⚿ Deploy to staging →</button>
+                <button className="btn sm" disabled={!canStage} style={{width:"100%", opacity: canStage ? 1 : 0.5, cursor: canStage ? "pointer" : "not-allowed"}} onClick={(e)=>{ e.stopPropagation(); if (canStage) onStage(party.id); }} title={!leader ? "Appoint a leader first" : overCap ? "Over capacity" : present.length === 0 ? "Add at least one soul" : !canStageMore ? "Staging is full" : "Move to staging"}>⚿ Deploy to staging →</button>
               ) : (
-                <button
-                  className="btn sm"
-                  disabled={!canDeploy}
-                  style={{width:"100%", fontFamily:"var(--serif)", letterSpacing:"0.1em", opacity: canDeploy ? 1 : 0.5, cursor: canDeploy ? "pointer" : "not-allowed"}}
-                  onClick={(e)=>{ e.stopPropagation(); if (canDeploy) onToggleDeploy(party.id); }}
-                  title={canDeploy ? "Lock this banner — no changes in or out until recalled" : (!leader ? "Appoint a leader first" : overCap ? "Over capacity" : "Add at least one soul")}
-                >⚿ Deploy banner →</button>
+                <button className="btn sm" disabled={!canDeploy} style={{width:"100%", opacity: canDeploy ? 1 : 0.5, cursor: canDeploy ? "pointer" : "not-allowed"}} onClick={(e)=>{ e.stopPropagation(); if (canDeploy) onToggleDeploy(party.id); }} title={canDeploy ? "Lock this banner" : (!leader ? "Appoint a leader first" : overCap ? "Over capacity" : "Add at least one soul")}>⚿ Deploy banner →</button>
               )}
             </div>
           )}
-      </div>
+        </div>
       )}
     </div>
   );

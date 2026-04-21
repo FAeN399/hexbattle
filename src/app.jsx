@@ -845,7 +845,7 @@ function App() {
             </div>
           </div>
 
-          <div style={{display:"grid", gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)", gap:14, marginTop:10}}>
+          <div className="parties-grid">
             {parties.map(p => {
               if (afieldPartyIds.has(p.id)) {
                 const info = afieldByPartyId[p.id];
