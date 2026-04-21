@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>SIGILBORNE — HexBattle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    background: #f2ead5;
+    color: #2a2118;
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+  main {
+    max-width: 640px;
+    text-align: center;
+  }
+  h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+  }
+  p.lede {
+    font-style: italic;
+    opacity: 0.75;
+    margin: 0 0 2.5rem;
+    font-size: 1.15rem;
+  }
+  nav { display: grid; gap: 1rem; }
+  a {
+    display: block;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #2a2118;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.3);
+    transition: background 0.15s;
+  }
+  a:hover { background: rgba(255,255,255,0.7); }
+  a strong {
+    display: block;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  a span {
+    display: block;
+    font-style: italic;
+    opacity: 0.7;
+    margin-top: 0.25rem;
+  }
+  footer {
+    margin-top: 3rem;
+    font-size: 0.85rem;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+  <main>
+    <h1>Sigilborne</h1>
+    <p class="lede">Choose your scroll.</p>
+    <nav>
+      <a href="party-command.html">
+        <strong>Party Command</strong>
+        <span>Roster, forge, battle, postings.</span>
+      </a>
+      <a href="wardens-oath.html">
+        <strong>The Warden&rsquo;s Oath</strong>
+        <span>Interview, reveal, scroll.</span>
+      </a>
+    </nav>
+    <footer>HexBattle &middot; hosted on GitHub Pages</footer>
+  </main>
+</body>
+</html>
