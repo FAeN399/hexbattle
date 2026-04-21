@@ -159,32 +159,23 @@ function PartyCard({ party, units, active, selectedUnitId, showGridLines, dragSt
   const canDeploy = present.length > 0 && !!leader && !overCap;
   const stagingMode = !!onStage;
   const canStage = stagingMode && present.length > 0 && !!leader && !overCap && !deployed && (staged || canStageMore);
-  const [side, setSide] = usePCState(0); // 0 = formation, 1 = everything else
-  const flipTo = (next) => (e) => { e.stopPropagation(); setSide(next); };
   const stop = (e) => e.stopPropagation();
 
   return (
     <div className={`party-card ${active ? "active" : ""} ${deployed ? "deployed-banner" : ""} ${staged ? "staged-banner" : ""}`} onClick={onActivate}>
-      {/* Persistent top strip (card chrome): banner name + status + flip */}
+      {/* Header: banner name + status pill */}
       <div className="party-card-top">
         <div className="party-card-top-name">
           <div className="party-name">{party.name}</div>
           {staged && <span className="status-pill status-staged">⚑ Staged</span>}
           {deployed && !staged && <span className="status-pill status-deployed">⚿ Deployed</span>}
         </div>
-        <div className="card-flip-nav" onClick={stop}>
-          <button className="card-flip-btn" onClick={flipTo(0)} title="Formation" style={{opacity: side === 0 ? 1 : 0.45}} aria-label="Show formation">◀</button>
-          <span className="card-flip-dots">
-            <i className="card-dot" style={{background: side === 0 ? "var(--ink)" : "var(--rule)"}}/>
-            <i className="card-dot" style={{background: side === 1 ? "var(--ink)" : "var(--rule)"}}/>
-          </span>
-          <button className="card-flip-btn" onClick={flipTo(1)} title="Details" style={{opacity: side === 1 ? 1 : 0.45}} aria-label="Show details">▶</button>
-        </div>
       </div>
 
-      {side === 0 ? (
-        /* SIDE A — formation grid only */
-        <div className="party-card-side side-formation" onClick={stop}>
+      {/* Two-column body: LEFT = army, RIGHT = details */}
+      <div className="party-card-body" onClick={stop}>
+        {/* LEFT: the army (formation grid + metrics) */}
+        <div className="pc-army">
           <FormationGrid
             party={party}
             units={units}
@@ -198,15 +189,7 @@ function PartyCard({ party, units, active, selectedUnitId, showGridLines, dragSt
             onDragOverSlot={deployed ? (()=>{}) : onDragOverSlot}
             onDragLeaveSlot={onDragLeaveSlot}
           />
-        </div>
-      ) : (
-        /* SIDE B — everything else */
-        <div className="party-card-side side-details" onClick={stop}>
-          {party.motto && (
-            <div className="party-motto">&ldquo;{party.motto}&rdquo;</div>
-          )}
-
-          <div className="party-metrics">
+          <div className="pc-army-metrics">
             <div className="metric">
               <div className="metric-label">Souls</div>
               <div className="metric-val" style={{color: overCap ? "var(--blood)" : "var(--ink)"}}>
@@ -220,6 +203,13 @@ function PartyCard({ party, units, active, selectedUnitId, showGridLines, dragSt
               </div>
             </div>
           </div>
+        </div>
+
+        {/* RIGHT: everything else */}
+        <div className="pc-details">
+          {party.motto && (
+            <div className="party-motto">&ldquo;{party.motto}&rdquo;</div>
+          )}
 
           <div className="card-section">
             <div className="label">Formation</div>
@@ -262,22 +252,23 @@ function PartyCard({ party, units, active, selectedUnitId, showGridLines, dragSt
               <div className="leader-none">No leader — Broken Banner risk.</div>
             )}
           </div>
+        </div>
+      </div>
 
-          {(onToggleDeploy || stagingMode) && (
-            <div className="card-footer">
-              {staged ? (
-                <button className="btn ghost sm" style={{width:"100%"}} onClick={(e)=>{ e.stopPropagation(); onUnstage && onUnstage(party.id); }} title="Remove this banner from the rehearsal staging">↩ Withdraw from staging</button>
-              ) : deployed ? (
-                <div style={{display:"flex", gap:6}}>
-                  <button className="btn sm" style={{flex:1}} onClick={(e)=>{ e.stopPropagation(); onTestBattle && onTestBattle(party.id); }} title="Rehearse a battle with this banner">⚔ Test battle</button>
-                  <button className="btn ghost sm" style={{flex:1}} onClick={(e)=>{ e.stopPropagation(); onToggleDeploy(party.id); }} title="Return to the muster">↩ Recall</button>
-                </div>
-              ) : stagingMode ? (
-                <button className="btn sm" disabled={!canStage} style={{width:"100%", opacity: canStage ? 1 : 0.5, cursor: canStage ? "pointer" : "not-allowed"}} onClick={(e)=>{ e.stopPropagation(); if (canStage) onStage(party.id); }} title={!leader ? "Appoint a leader first" : overCap ? "Over capacity" : present.length === 0 ? "Add at least one soul" : !canStageMore ? "Staging is full" : "Move to staging"}>⚿ Deploy to staging →</button>
-              ) : (
-                <button className="btn sm" disabled={!canDeploy} style={{width:"100%", opacity: canDeploy ? 1 : 0.5, cursor: canDeploy ? "pointer" : "not-allowed"}} onClick={(e)=>{ e.stopPropagation(); if (canDeploy) onToggleDeploy(party.id); }} title={canDeploy ? "Lock this banner" : (!leader ? "Appoint a leader first" : overCap ? "Over capacity" : "Add at least one soul")}>⚿ Deploy banner →</button>
-              )}
+      {/* Footer: deploy / test / recall actions span the full card */}
+      {(onToggleDeploy || stagingMode) && (
+        <div className="card-footer" onClick={stop}>
+          {staged ? (
+            <button className="btn ghost sm" style={{width:"100%"}} onClick={(e)=>{ e.stopPropagation(); onUnstage && onUnstage(party.id); }} title="Remove this banner from the rehearsal staging">↩ Withdraw from staging</button>
+          ) : deployed ? (
+            <div style={{display:"flex", gap:6}}>
+              <button className="btn sm" style={{flex:1}} onClick={(e)=>{ e.stopPropagation(); onTestBattle && onTestBattle(party.id); }} title="Rehearse a battle with this banner">⚔ Test battle</button>
+              <button className="btn ghost sm" style={{flex:1}} onClick={(e)=>{ e.stopPropagation(); onToggleDeploy(party.id); }} title="Return to the muster">↩ Recall</button>
             </div>
+          ) : stagingMode ? (
+            <button className="btn sm" disabled={!canStage} style={{width:"100%", opacity: canStage ? 1 : 0.5, cursor: canStage ? "pointer" : "not-allowed"}} onClick={(e)=>{ e.stopPropagation(); if (canStage) onStage(party.id); }} title={!leader ? "Appoint a leader first" : overCap ? "Over capacity" : present.length === 0 ? "Add at least one soul" : !canStageMore ? "Staging is full" : "Move to staging"}>⚿ Deploy to staging →</button>
+          ) : (
+            <button className="btn sm" disabled={!canDeploy} style={{width:"100%", opacity: canDeploy ? 1 : 0.5, cursor: canDeploy ? "pointer" : "not-allowed"}} onClick={(e)=>{ e.stopPropagation(); if (canDeploy) onToggleDeploy(party.id); }} title={canDeploy ? "Lock this banner" : (!leader ? "Appoint a leader first" : overCap ? "Over capacity" : "Add at least one soul")}>⚿ Deploy banner →</button>
           )}
         </div>
       )}
