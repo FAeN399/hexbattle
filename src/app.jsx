@@ -6,6 +6,13 @@ const { useState, useEffect, useMemo, useRef } = React;
 function buildArmy(preset) {
   // returns {units, parties}
   const units = JSON.parse(JSON.stringify(ROSTER));
+  try {
+    const raw = localStorage.getItem("sigilborne.oath-recruits.v1");
+    const recruits = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(recruits)) {
+      recruits.forEach(r => units.push(JSON.parse(JSON.stringify(r))));
+    }
+  } catch {}
   let parties;
   if (preset === "spread") {
     parties = [
@@ -494,7 +501,7 @@ function App() {
   const handleReturnToOath = () => {
     if (!window.confirm("Return to character creation?\n\nThis abandons this Warden's entire campaign — every soul, every sealed writ, every crown earned. A new oath will be sworn in its place.")) return;
     try { localStorage.clear(); } catch(e){}
-    window.location.href = "The Warden's Oath.html";
+    window.location.href = "wardens-oath.html";
   };
 
   // ---- Simulate Day: advance the campaign calendar ----

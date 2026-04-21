@@ -77,6 +77,10 @@ function OathApp() {
 
   const handleFinalize = () => setShowReveal(true);
   const handleSeal = () => {
+    if (!sealed && typeof window.oathToUnit === "function") {
+      const unit = window.oathToUnit({ name, answers, chosenSigil });
+      window.saveOathRecruit(unit);
+    }
     setSealed(true);
     setShowReveal(false);
   };
@@ -133,7 +137,7 @@ function OathApp() {
           {sealed && (
             <a
               className="btn ghost sm"
-              href="Party Command.html"
+              href="party-command.html"
               style={{textDecoration:"none"}}
             >
               ▸ Enter the Hall
